@@ -11,6 +11,8 @@
 
 package com.reactnative.googlefit;
 
+import android.annotation.SuppressLint;
+import android.os.AsyncTask;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -40,6 +42,7 @@ import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
@@ -217,7 +220,7 @@ public class StepHistory {
         return results;
     }
 
-    public WritableArray readDailyTotalSteps() {
+    public ReadableArray readDailyTotalSteps() {
 
         double total = 0;
         WritableArray results = Arguments.createArray();
@@ -234,12 +237,52 @@ public class StepHistory {
         }
 
         Log.i(TAG, "Total steps: " + total);
-        WritableMap map = Arguments.createMap();
 
-        map.putDouble("steps", total);
-        results.pushMap(map);
+        results.pushDouble(total);
 
         return results;
+    }
+
+    public ReadableArray readDailyTotalSteps_new() {
+        WritableArray results = Arguments.createArray();
+
+        int total = 0;
+
+        try {
+            VerifyDataTask task = new VerifyDataTask();
+            total = task.execute().get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        results.pushDouble(total);
+        return results;
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    private class VerifyDataTask extends AsyncTask<Void, Void, Integer> {
+        protected Integer doInBackground(Void... params) {
+
+            int total = 0;
+
+            PendingResult<DailyTotalResult> result = Fitness.HistoryApi.readDailyTotal(googleFitManager.getGoogleApiClient(), DataType.TYPE_STEP_COUNT_DELTA);
+            DailyTotalResult totalResult = result.await(30, TimeUnit.SECONDS);
+            if (totalResult.getStatus().isSuccess()) {
+                DataSet totalSet = totalResult.getTotal();
+                total = totalSet.isEmpty()
+                        ? 0
+                        : totalSet.getDataPoints().get(0).getValue(Field.FIELD_STEPS).asInt();
+            } else {
+                Log.w(TAG, "There was a problem getting the step count.");
+            }
+
+            Log.i(TAG, "Total steps: " + total);
+
+            return total;
+        }
+
     }
 
     //Will be deprecated in future releases

@@ -7,6 +7,10 @@ A React Native bridge module for interacting with Google Fit
 Changelog:
 
 ```
+0.5.1	- added getCurrentDayStepCount(). 
+
+0.5.0	- 
+
 0.4.0-beta
         - Recording API implemetation (@reboss thanks for PR)
         - Just use startRecording(callback) function which listens 
@@ -56,7 +60,7 @@ Changelog:
 
 ### Getting started
 
-`$ npm install react-native-google-fit --save`
+`$ npm install anvesh523/react-native-google-fit --save`
 
 ### Enable Google Fitness API for your application
 
