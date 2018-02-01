@@ -20,6 +20,7 @@ import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
+import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.fitness.Fitness;
 import com.google.android.gms.fitness.data.Bucket;
 import com.google.android.gms.fitness.data.DataPoint;
@@ -29,6 +30,7 @@ import com.google.android.gms.fitness.data.Field;
 import com.google.android.gms.fitness.data.DataSource;
 import com.google.android.gms.fitness.request.DataSourcesRequest;
 import com.google.android.gms.fitness.request.DataReadRequest;
+import com.google.android.gms.fitness.result.DailyTotalResult;
 import com.google.android.gms.fitness.result.DataReadResult;
 import com.google.android.gms.fitness.result.DataSourcesResult;
 import com.google.android.gms.fitness.data.Device;
@@ -211,6 +213,31 @@ public class StepHistory {
             map.putArray("steps", steps);
             results.pushMap(map);
         }
+
+        return results;
+    }
+
+    public WritableArray readDailyTotalSteps() {
+
+        double total = 0;
+        WritableArray results = Arguments.createArray();
+
+        PendingResult<DailyTotalResult> result = Fitness.HistoryApi.readDailyTotal(googleFitManager.getGoogleApiClient(), DataType.TYPE_STEP_COUNT_DELTA);
+        DailyTotalResult totalResult = result.await(30, TimeUnit.SECONDS);
+        if (totalResult.getStatus().isSuccess()) {
+            DataSet totalSet = totalResult.getTotal();
+            total = totalSet.isEmpty()
+                    ? 0
+                    : totalSet.getDataPoints().get(0).getValue(Field.FIELD_STEPS).asInt();
+        } else {
+            Log.w(TAG, "There was a problem getting the step count.");
+        }
+
+        Log.i(TAG, "Total steps: " + total);
+        WritableMap map = Arguments.createMap();
+
+        map.putDouble("steps", total);
+        results.pushMap(map);
 
         return results;
     }

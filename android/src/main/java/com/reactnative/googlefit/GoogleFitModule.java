@@ -113,6 +113,17 @@ LifecycleEventListener {
             errorCallback.invoke(e.getMessage());
         }
     }
+
+    @ReactMethod
+    public void getCurrentDayStepCount(Callback errorCallback,
+                                         Callback successCallback) {
+
+        try {
+            successCallback.invoke(mGoogleFitManager.getStepHistory().readDailyTotalSteps());
+        } catch (IllegalViewOperationException e) {
+            errorCallback.invoke(e.getMessage());
+        }
+    }
     
     @ReactMethod
     public void getDailyDistanceSamples(double startDate,
